@@ -1,2 +1,2 @@
-# Next-IDE-Android-
+# Next IDE
 IDE for Next language
