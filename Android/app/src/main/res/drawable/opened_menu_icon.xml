@@ -1,0 +1,98 @@
+<animated-vector
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt">
+    <aapt:attr name="android:drawable">
+        <vector
+            android:width="50dp"
+            android:height="50dp"
+            android:viewportHeight="505"
+            android:viewportWidth="505"
+            android:autoMirrored="true">
+            <group android:name="top_line"
+                android:pivotX="19"
+                android:pivotY="26">
+                <path
+                    android:fillColor="#00000000"
+                    android:pathData="M20.67,20.56L485.11,20.56"
+                    android:strokeColor="@color/main_text"
+                    android:strokeLineCap="round"
+                    android:strokeLineJoin="round"
+                    android:strokeWidth="40"/>
+            </group>
+            <group android:name="bottom_line"
+                android:pivotX="18"
+                android:pivotY="479">
+                <path
+                    android:fillColor="#00000000"
+                    android:pathData="M20.67,485L485.67,485"
+                    android:strokeColor="@color/main_text"
+                    android:strokeLineCap="round"
+                    android:strokeLineJoin="round"
+                    android:strokeWidth="40"/>
+            </group>
+            <group android:name="center_line">
+                <path
+                    android:fillColor="#00000000"
+                    android:pathData="M20.67,234.44L394.56,234.44"
+                    android:strokeColor="@color/main_text"
+                    android:strokeLineCap="round"
+                    android:strokeLineJoin="round"
+                    android:strokeWidth="40"/>
+            </group>
+        </vector>
+    </aapt:attr>
+
+    <target android:name="top_line">
+        <aapt:attr name="android:animation">
+            <set>
+                <objectAnimator
+                    android:duration="300"
+                    android:interpolator="@android:anim/accelerate_decelerate_interpolator"
+                    android:propertyName="rotation"
+                    android:repeatCount="0"
+                    android:valueFrom="45"
+                    android:valueTo="0"/>
+                <objectAnimator
+                    android:duration="300"
+                    android:interpolator="@android:anim/accelerate_decelerate_interpolator"
+                    android:propertyName="scaleX"
+                    android:repeatCount="0"
+                    android:valueFrom="1.38"
+                    android:valueTo="1.0"/>
+            </set>
+        </aapt:attr>
+    </target>
+
+    <target android:name="center_line">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                android:duration="300"
+                android:interpolator="@android:anim/accelerate_decelerate_interpolator"
+                android:propertyName="scaleX"
+                android:repeatCount="0"
+                android:valueFrom="0.0"
+                android:valueTo="1.0"/>
+        </aapt:attr>
+    </target>
+
+    <target android:name="bottom_line">
+        <aapt:attr name="android:animation">
+            <set>
+                <objectAnimator
+                    android:duration="300"
+                    android:interpolator="@android:anim/accelerate_decelerate_interpolator"
+                    android:propertyName="rotation"
+                    android:repeatCount="0"
+                    android:valueFrom="-45"
+                    android:valueTo="0"/>
+                <objectAnimator
+                    android:duration="300"
+                    android:interpolator="@android:anim/accelerate_decelerate_interpolator"
+                    android:propertyName="scaleX"
+                    android:repeatCount="0"
+                    android:valueFrom="1.38"
+                    android:valueTo="1.0"/>
+            </set>
+        </aapt:attr>
+    </target>
+</animated-vector>
