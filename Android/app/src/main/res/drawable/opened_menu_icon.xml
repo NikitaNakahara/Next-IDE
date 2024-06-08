@@ -12,7 +12,7 @@
                 android:pivotX="19"
                 android:pivotY="26">
                 <path
-                    android:fillColor="#00000000"
+                    android:fillColor="@color/transparent"
                     android:pathData="M20.67,20.56L485.11,20.56"
                     android:strokeColor="@color/main_text"
                     android:strokeLineCap="round"
@@ -23,7 +23,7 @@
                 android:pivotX="18"
                 android:pivotY="479">
                 <path
-                    android:fillColor="#00000000"
+                    android:fillColor="@color/transparent"
                     android:pathData="M20.67,485L485.67,485"
                     android:strokeColor="@color/main_text"
                     android:strokeLineCap="round"
@@ -32,7 +32,7 @@
             </group>
             <group android:name="center_line">
                 <path
-                    android:fillColor="#00000000"
+                    android:fillColor="@color/transparent"
                     android:pathData="M20.67,234.44L394.56,234.44"
                     android:strokeColor="@color/main_text"
                     android:strokeLineCap="round"

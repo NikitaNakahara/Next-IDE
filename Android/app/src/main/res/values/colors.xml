@@ -3,4 +3,14 @@
     <color name="window_bg">#121212</color>
     <color name="main_text">#fff</color>
     <color name="gray_text">#aaa</color>
+    <color name="header_bg">#212223</color>
+
+    <color name="main_ui_1">#6863FF</color>
+    <color name="main_ui_2">#00D2FF</color>
+    <color name="main_ui_3">#00EBD8</color>
+
+    <color name="transparent">#00000000</color>
+    
+    <color name="green">#00ff00</color>
+    <color name="red">#ff0000</color>
 </resources>

@@ -7,8 +7,8 @@
   <path
       android:pathData="M135,175v150"
       android:strokeWidth="2.5"
-      android:fillColor="#00000000"
-      android:strokeColor="#6268FE"/>
+      android:fillColor="@color/transparent"
+      android:strokeColor="@color/main_ui_1"/>
   <path
       android:pathData="M150,175v150h25l90,-55l85,45l25,-5V190l-25,-5l-85,45l-90,-55M175,210v80l65,-40M290,250l60,30v-60"
       android:fillType="evenOdd">
@@ -19,9 +19,9 @@
           android:endX="375"
           android:endY="250"
           android:type="linear">
-        <item android:offset="0" android:color="#FF6863FF"/>
-        <item android:offset="0.5" android:color="#FF00D2FF"/>
-        <item android:offset="1" android:color="#FF00EBD8"/>
+        <item android:offset="0" android:color="@color/main_ui_1"/>
+        <item android:offset="0.5" android:color="@color/main_ui_2"/>
+        <item android:offset="1" android:color="@color/main_ui_3"/>
       </gradient>
     </aapt:attr>
   </path>
