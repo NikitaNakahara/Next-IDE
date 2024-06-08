@@ -7,6 +7,7 @@ import android.graphics.drawable.AnimatedVectorDrawable
 import android.os.Bundle
 import android.util.TypedValue
 import android.widget.ImageView
+import android.widget.TextView
 import com.nakaharadev.nextide.ui.FileManagerView
 import java.io.File
 
@@ -20,6 +21,8 @@ class EditorActivity : Activity() {
         project = intent.getSerializableExtra("project") as Project
 
         setContentView(R.layout.editor)
+
+        findViewById<TextView>(R.id.editor_project_name).text = project!!.name
 
         findViewById<ImageView>(R.id.toggle_menu_state).setOnClickListener {
             toggleMenuState(it as ImageView)

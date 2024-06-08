@@ -153,18 +153,18 @@ class AppActivity : Activity() {
             }
             """.trimIndent()
 
+            var projectFileDir = File("${projectDir.path}/build")
+            projectFileDir.mkdir()
+            projectFileDir = File("${projectDir.path}/src")
+            projectFileDir.mkdir()
+            projectFileDir = File("${projectDir.path}/res")
+            projectFileDir.mkdir()
+
             val configFile = File("${projectDir.path}/config.json")
             configFile.createNewFile()
             val dos = DataOutputStream(FileOutputStream(configFile))
             dos.writeUTF(config)
             dos.close()
-
-            var projectFileDir = File("${projectDir.path}/src")
-            projectFileDir.mkdir()
-            projectFileDir = File("${projectDir.path}/res")
-            projectFileDir.mkdir()
-            projectFileDir = File("${projectDir.path}/build")
-            projectFileDir.mkdir()
 
             runOnUiThread {
                 finishCallback(project)
