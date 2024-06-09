@@ -5,9 +5,11 @@ import android.app.Activity
 import android.graphics.drawable.Animatable
 import android.graphics.drawable.AnimatedVectorDrawable
 import android.os.Bundle
+import android.util.Log
 import android.util.TypedValue
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import com.nakaharadev.nextide.ui.FileManagerView
 import java.io.File
 
@@ -57,7 +59,16 @@ class EditorActivity : Activity() {
     }
 
     private fun initFileManager(root: File) {
-        findViewById<FileManagerView>(R.id.editor_file_manager).setFilesRoot(root)
+        val fileManager = findViewById<FileManagerView>(R.id.editor_file_manager)
+        fileManager.setFilesRoot(root)
+        fileManager.setOnCreateCallback { fileName, fileType ->
+            Toast.makeText(this@EditorActivity, "$fileName | $fileType", Toast.LENGTH_SHORT).show()
+            val newFile = File(fileName)
+            if (fileType == FileManagerView.ELEMENT_TYPE_FILE) newFile.createNewFile()
+            else newFile.mkdir()
+
+            return@setOnCreateCallback newFile
+        }
     }
 
     private fun dpToPx(dp: Float): Float {
