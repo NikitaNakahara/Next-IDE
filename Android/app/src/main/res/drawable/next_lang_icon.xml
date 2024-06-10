@@ -5,18 +5,18 @@
     android:viewportWidth="500"
     android:viewportHeight="500">
   <path
-      android:pathData="M131.6,175v150"
+      android:pathData="M15.4,103.2v294"
       android:strokeWidth="2.5"
       android:fillColor="#00000000"
       android:strokeColor="#6268FE"/>
   <path
-      android:pathData="M144.3,175v150h25l90,-55l85,45l25,-5V190l-25,-5l-85,45l-90,-55M169.3,210v80l65,-40M284.3,250l60,30v-60"
+      android:pathData="M33.4,103.4v293.2h51.1l183.9,-107.5l173.7,88l51.1,-9.8V132.7l-51.1,-9.8l-173.7,88L84.5,103.4M84.5,171.8v156.4L217.3,250M319.5,250l122.6,58.6V191.4"
       android:fillType="evenOdd">
     <aapt:attr name="android:fillColor">
       <gradient 
-          android:startX="144.3"
+          android:startX="33.43"
           android:startY="250"
-          android:endX="369.3"
+          android:endX="493.2"
           android:endY="250"
           android:type="linear">
         <item android:offset="0" android:color="#FF6863FF"/>

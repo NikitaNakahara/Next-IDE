@@ -28,13 +28,18 @@ class FileManagerView @JvmOverloads constructor(
 
     private var root: File? = null
     private var onCreateCallback: ((fileName: String, fileType: Int) -> File)? = null
+    private var onOpenCallback: ((file: File) -> Unit)? = null
 
     init {
         orientation = VERTICAL
     }
 
-    fun setOnCreateCallback(callback: ((fileName: String, fileType: Int) -> File)) {
+    fun setOnCreateCallback(callback: (fileName: String, fileType: Int) -> File) {
         onCreateCallback = callback
+    }
+
+    fun setOnOpenFileCallback(callback: (file: File) -> Unit) {
+        onOpenCallback = callback
     }
 
     fun setFilesRoot(root: File) {
@@ -64,6 +69,14 @@ class FileManagerView @JvmOverloads constructor(
             return@setOnLongClickListener true
         }
 
+        var dirIsOpen = false
+        dirField.findViewById<LinearLayout>(R.id.dir_title).setOnClickListener {
+            if (!dirIsOpen) openDirContent(dirField.findViewById(R.id.dir_content))
+            else closeDirContent(dirField.findViewById(R.id.dir_content))
+
+            dirIsOpen = !dirIsOpen
+        }
+
         for (elem in dir.listFiles()!!) {
             if (elem.isFile) {
                 addFileToList(elem, contentLayout)
@@ -79,6 +92,10 @@ class FileManagerView @JvmOverloads constructor(
         val fileField = LayoutInflater.from(context).inflate(R.layout.file_elem, null)
         fileField.findViewById<TextView>(R.id.file_name).text = file.name
         root.addView(fileField)
+
+        fileField.setOnClickListener {
+            onOpenCallback!!(file)
+        }
 
         val fileNameSplit = file.name.split('.')
         if (fileNameSplit.size == 1) {
@@ -104,8 +121,12 @@ class FileManagerView @JvmOverloads constructor(
             }
             animator.start()
 
-            it.setOnClickListener {
-                openDirContent(it as LinearLayout)
+            var dirIsOpen = false
+            it.findViewById<LinearLayout>(R.id.dir_title).setOnClickListener {
+                if (!dirIsOpen) openDirContent(dir.findViewById(R.id.dir_content))
+                else closeDirContent(dir.findViewById(R.id.dir_content))
+
+                dirIsOpen = !dirIsOpen
             }
         }
 
@@ -120,17 +141,17 @@ class FileManagerView @JvmOverloads constructor(
     private fun createNewElement(path: String, dir: LinearLayout) {
         dir.findViewById<ViewFlipper>(R.id.dir_tools_flipper).displayedChild = 1
 
-        val edit = findViewById<EditText>(R.id.editor_new_file_name)
+        val edit = dir.findViewById<EditText>(R.id.editor_new_file_name)
 
-        findViewById<ImageView>(R.id.elem_create_done).setOnClickListener {
+        dir.findViewById<ImageView>(R.id.elem_create_done).setOnClickListener {
             if (edit.text.isNotEmpty()) {
-                addDirToList(onCreateCallback!!("$path/${edit.text}", ELEMENT_TYPE_FILE), dir.findViewById(R.id.dir_content))
+                addFileToList(onCreateCallback!!("$path/${edit.text}", ELEMENT_TYPE_FILE), dir.findViewById(R.id.dir_content))
             }
 
             dir.findViewById<ViewFlipper>(R.id.dir_tools_flipper).displayedChild = 0
         }
 
-        findViewById<RelativeLayout>(R.id.elem_create_dir_done).setOnClickListener {
+        dir.findViewById<RelativeLayout>(R.id.elem_create_dir_done).setOnClickListener {
             if (edit.text.isNotEmpty()) {
                 addDirToList(onCreateCallback!!("$path/${edit.text}", ELEMENT_TYPE_DIR), dir.findViewById(R.id.dir_content))
             }
@@ -140,12 +161,19 @@ class FileManagerView @JvmOverloads constructor(
     }
 
     private fun openDirContent(dir: LinearLayout) {
+        dir.layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
+    }
 
+    private fun closeDirContent(dir: LinearLayout) {
+        dir.layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, 0)
     }
 
     private fun getIconIdForFile(end: String?): Int {
         if (end == "json") {
             return R.drawable.json_file_icon
+        }
+        if (end == "next") {
+            return R.drawable.next_lang_icon
         }
 
         return 0

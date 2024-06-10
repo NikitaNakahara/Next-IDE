@@ -10,6 +10,7 @@ import android.util.TypedValue
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import com.nakaharadev.nextide.ui.CodeEditor
 import com.nakaharadev.nextide.ui.FileManagerView
 import java.io.File
 
@@ -31,7 +32,6 @@ class EditorActivity : Activity() {
         }
 
         initFileManager(project?.files!!)
-        initEditor()
     }
 
     private fun toggleMenuState(menuBtn: ImageView) {
@@ -55,9 +55,6 @@ class EditorActivity : Activity() {
         menuIsOpened = !menuIsOpened
     }
 
-    private fun initEditor() {
-    }
-
     private fun initFileManager(root: File) {
         val fileManager = findViewById<FileManagerView>(R.id.editor_file_manager)
         fileManager.setFilesRoot(root)
@@ -68,6 +65,10 @@ class EditorActivity : Activity() {
             else newFile.mkdir()
 
             return@setOnCreateCallback newFile
+        }
+        fileManager.setOnOpenFileCallback {
+            findViewById<CodeEditor>(R.id.editor).addFile(it)
+            toggleMenuState(findViewById(R.id.toggle_menu_state))
         }
     }
 
