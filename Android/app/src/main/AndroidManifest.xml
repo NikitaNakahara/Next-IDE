@@ -19,7 +19,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".EditorActivity"
-            android:exported="true">
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>

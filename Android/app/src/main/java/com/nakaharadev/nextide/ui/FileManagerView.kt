@@ -1,5 +1,6 @@
 package com.nakaharadev.nextide.ui
 
+import android.animation.Animator
 import android.animation.ValueAnimator
 import android.content.Context
 import android.util.AttributeSet
@@ -24,6 +25,8 @@ class FileManagerView @JvmOverloads constructor(
     companion object {
         const val ELEMENT_TYPE_FILE = 0
         const val ELEMENT_TYPE_DIR = 1
+
+        const val ELEM_HEIGHT_DP = 28
     }
 
     private var root: File? = null
@@ -47,48 +50,48 @@ class FileManagerView @JvmOverloads constructor(
 
         for (elem in root.listFiles()!!) {
             if (elem.isFile) {
-                addFileToList(elem, this)
+                _addFileToList(elem, this)
             } else {
-                addDirToList(elem, this)
+                _addDirToList(elem, this)
             }
         }
     }
 
-    private fun addDirToList(dir: File, root: LinearLayout) {
+    private fun _addDirToList(dir: File, root: LinearLayout) {
         val dirField = LayoutInflater.from(context).inflate(R.layout.dir_elem, null)
         dirField.findViewById<TextView>(R.id.dir_name).text = dir.name
         dirField.setOnClickListener {
-            openDirContent(dirField as LinearLayout)
+            _openDirContent(dirField as LinearLayout)
         }
 
         val contentLayout = dirField.findViewById<LinearLayout>(R.id.dir_content)
 
         dirField.findViewById<LinearLayout>(R.id.dir_title).setOnLongClickListener {
-            openDirTools(dir.path, dirField as LinearLayout)
+            _openDirTools(dir.path, dirField as LinearLayout)
 
             return@setOnLongClickListener true
         }
 
         var dirIsOpen = false
         dirField.findViewById<LinearLayout>(R.id.dir_title).setOnClickListener {
-            if (!dirIsOpen) openDirContent(dirField.findViewById(R.id.dir_content))
-            else closeDirContent(dirField.findViewById(R.id.dir_content))
+            if (!dirIsOpen) _openDirContent(dirField.findViewById(R.id.dir_content))
+            else _closeDirContent(dirField.findViewById(R.id.dir_content))
 
             dirIsOpen = !dirIsOpen
         }
 
         for (elem in dir.listFiles()!!) {
             if (elem.isFile) {
-                addFileToList(elem, contentLayout)
+                _addFileToList(elem, contentLayout)
             } else {
-                addDirToList(elem, contentLayout)
+                _addDirToList(elem, contentLayout)
             }
         }
 
         root.addView(dirField)
     }
 
-    private fun addFileToList(file: File, root: LinearLayout) {
+    private fun _addFileToList(file: File, root: LinearLayout) {
         val fileField = LayoutInflater.from(context).inflate(R.layout.file_elem, null)
         fileField.findViewById<TextView>(R.id.file_name).text = file.name
         root.addView(fileField)
@@ -99,22 +102,22 @@ class FileManagerView @JvmOverloads constructor(
 
         val fileNameSplit = file.name.split('.')
         if (fileNameSplit.size == 1) {
-            fileField.findViewById<ImageView>(R.id.file_icon).setImageResource(getIconIdForFile(null))
+            fileField.findViewById<ImageView>(R.id.file_icon).setImageResource(_getIconIdForFile(null))
         } else {
-            val iconId = getIconIdForFile(fileNameSplit[fileNameSplit.size - 1])
+            val iconId = _getIconIdForFile(fileNameSplit[fileNameSplit.size - 1])
             if (iconId != 0) {
                 fileField.findViewById<ImageView>(R.id.file_icon).setImageResource(iconId)
             }
         }
     }
 
-    private fun openDirTools(path: String, dir: LinearLayout) {
+    private fun _openDirTools(path: String, dir: LinearLayout) {
         dir.findViewById<ImageView>(R.id.dir_add_elem).setOnClickListener {
-            createNewElement(path, dir)
+            _createNewElement(path, dir)
         }
 
         dir.findViewById<LinearLayout>(R.id.dir_title).setOnClickListener {
-            val animator = ValueAnimator.ofInt(dpToPx(25f).toInt(), 0)
+            val animator = ValueAnimator.ofInt(_dpToPx(25f).toInt(), 0)
             animator.duration = 200
             animator.addUpdateListener {
                 dir.findViewById<LinearLayout>(R.id.dir_tools).layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, it.animatedValue as Int)
@@ -123,14 +126,14 @@ class FileManagerView @JvmOverloads constructor(
 
             var dirIsOpen = false
             it.findViewById<LinearLayout>(R.id.dir_title).setOnClickListener {
-                if (!dirIsOpen) openDirContent(dir.findViewById(R.id.dir_content))
-                else closeDirContent(dir.findViewById(R.id.dir_content))
+                if (!dirIsOpen) _openDirContent(dir.findViewById(R.id.dir_content))
+                else _closeDirContent(dir.findViewById(R.id.dir_content))
 
                 dirIsOpen = !dirIsOpen
             }
         }
 
-        val animator = ValueAnimator.ofInt(0, dpToPx(25f).toInt())
+        val animator = ValueAnimator.ofInt(0, _dpToPx(25f).toInt())
         animator.duration = 200
         animator.addUpdateListener {
             dir.findViewById<LinearLayout>(R.id.dir_tools).layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, it.animatedValue as Int)
@@ -138,14 +141,14 @@ class FileManagerView @JvmOverloads constructor(
         animator.start()
     }
 
-    private fun createNewElement(path: String, dir: LinearLayout) {
+    private fun _createNewElement(path: String, dir: LinearLayout) {
         dir.findViewById<ViewFlipper>(R.id.dir_tools_flipper).displayedChild = 1
 
         val edit = dir.findViewById<EditText>(R.id.editor_new_file_name)
 
         dir.findViewById<ImageView>(R.id.elem_create_done).setOnClickListener {
             if (edit.text.isNotEmpty()) {
-                addFileToList(onCreateCallback!!("$path/${edit.text}", ELEMENT_TYPE_FILE), dir.findViewById(R.id.dir_content))
+                _addFileToList(onCreateCallback!!("$path/${edit.text}", ELEMENT_TYPE_FILE), dir.findViewById(R.id.dir_content))
             }
 
             dir.findViewById<ViewFlipper>(R.id.dir_tools_flipper).displayedChild = 0
@@ -153,22 +156,44 @@ class FileManagerView @JvmOverloads constructor(
 
         dir.findViewById<RelativeLayout>(R.id.elem_create_dir_done).setOnClickListener {
             if (edit.text.isNotEmpty()) {
-                addDirToList(onCreateCallback!!("$path/${edit.text}", ELEMENT_TYPE_DIR), dir.findViewById(R.id.dir_content))
+                _addDirToList(onCreateCallback!!("$path/${edit.text}", ELEMENT_TYPE_DIR), dir.findViewById(R.id.dir_content))
             }
 
             dir.findViewById<ViewFlipper>(R.id.dir_tools_flipper).displayedChild = 0
         }
     }
 
-    private fun openDirContent(dir: LinearLayout) {
-        dir.layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
+    private fun _openDirContent(dir: LinearLayout) {
+        val animator = ValueAnimator.ofInt(0, _dpToPx(ELEM_HEIGHT_DP * dir.childCount.toFloat()).toInt())
+        animator.duration = 200
+        animator.addUpdateListener {
+            dir.layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, it.animatedValue as Int)
+        }
+
+        animator.addListener(object : Animator.AnimatorListener {
+            override fun onAnimationStart(animation: Animator) {}
+            override fun onAnimationCancel(animation: Animator) {}
+            override fun onAnimationRepeat(animation: Animator) {}
+
+            override fun onAnimationEnd(animation: Animator) {
+                dir.layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
+            }
+        })
+
+        animator.start()
     }
 
-    private fun closeDirContent(dir: LinearLayout) {
-        dir.layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, 0)
+    private fun _closeDirContent(dir: LinearLayout) {
+        val animator = ValueAnimator.ofInt(_dpToPx(ELEM_HEIGHT_DP * dir.childCount.toFloat()).toInt(), 0)
+        animator.duration = 200
+        animator.addUpdateListener {
+            dir.layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, it.animatedValue as Int)
+        }
+
+        animator.start()
     }
 
-    private fun getIconIdForFile(end: String?): Int {
+    private fun _getIconIdForFile(end: String?): Int {
         if (end == "json") {
             return R.drawable.json_file_icon
         }
@@ -179,7 +204,7 @@ class FileManagerView @JvmOverloads constructor(
         return 0
     }
 
-    private fun dpToPx(dp: Float): Float {
+    private fun _dpToPx(dp: Float): Float {
         return TypedValue.applyDimension(
             TypedValue.COMPLEX_UNIT_DIP,
             dp,

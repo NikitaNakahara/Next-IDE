@@ -35,8 +35,8 @@ class AppActivity : Activity() {
 
         setContentView(R.layout.menu)
 
-        loadProjects()
-        initNewProject()
+        _loadProjects()
+        _initNewProject()
 
         findViewById<ImageView>(R.id.new_project).setOnClickListener {
             findViewById<ViewFlipper>(R.id.menu_flipper).displayedChild = 1
@@ -44,22 +44,22 @@ class AppActivity : Activity() {
         }
     }
 
-    private fun initNewProject() {
+    private fun _initNewProject() {
         findViewById<ViewFlipper>(R.id.header_btn_flipper).setOnClickListener {
             it as ViewFlipper
 
             findViewById<EditText>(R.id.project_name_edit).setText("")
             findViewById<Spinner>(R.id.target_os_spinner).setSelection(0)
-            findViewById<RelativeLayout>(convertProjectTypeToResId(ProjectConstructor.type)).setPadding(0, 0, 0, 0)
-            findViewById<RelativeLayout>(R.id.project_type_empty).setPadding(0, 0, 0, dpToPx(3f).toInt())
+            findViewById<RelativeLayout>(_convertProjectTypeToResId(ProjectConstructor.type)).setPadding(0, 0, 0, 0)
+            findViewById<RelativeLayout>(R.id.project_type_empty).setPadding(0, 0, 0, _dpToPx(3f).toInt())
 
             findViewById<ViewFlipper>(R.id.menu_flipper).displayedChild = 0
             it.displayedChild = 0
         }
 
-        ProjectConstructor.type = convertProjectTypeToString(R.id.project_type_empty)
+        ProjectConstructor.type = _convertProjectTypeToString(R.id.project_type_empty)
 
-        findViewById<RelativeLayout>(convertProjectTypeToResId(ProjectConstructor.type)).setPadding(0, 0, 0, dpToPx(3f).toInt())
+        findViewById<RelativeLayout>(_convertProjectTypeToResId(ProjectConstructor.type)).setPadding(0, 0, 0, _dpToPx(3f).toInt())
 
         arrayOf(
             R.id.project_type_empty,
@@ -67,7 +67,7 @@ class AppActivity : Activity() {
             R.id.project_type_ui
         ).forEach {
             findViewById<RelativeLayout>(it).setOnClickListener { view ->
-                changeProjectType(view)
+                _changeProjectType(view)
             }
         }
 
@@ -104,8 +104,8 @@ class AppActivity : Activity() {
 
             projectNameEdit.setText("")
             findViewById<Spinner>(R.id.target_os_spinner).setSelection(0)
-            findViewById<RelativeLayout>(convertProjectTypeToResId(ProjectConstructor.type)).setPadding(0, 0, 0, 0)
-            findViewById<RelativeLayout>(R.id.project_type_empty).setPadding(0, 0, 0, dpToPx(3f).toInt())
+            findViewById<RelativeLayout>(_convertProjectTypeToResId(ProjectConstructor.type)).setPadding(0, 0, 0, 0)
+            findViewById<RelativeLayout>(R.id.project_type_empty).setPadding(0, 0, 0, _dpToPx(3f).toInt())
 
             val loadBar = findViewById<RelativeLayout>(R.id.create_project_loading)
             loadBar.visibility = View.VISIBLE
@@ -117,11 +117,11 @@ class AppActivity : Activity() {
             animator.duration = 200
             animator.start()
 
-            createProject {
+            _createProject {
                 loadBar.alpha = 0.0f
                 loadBar.visibility = View.GONE
 
-                addProjectToUI(it)
+                _addProjectToUI(it)
 
                 findViewById<ViewFlipper>(R.id.header_btn_flipper).displayedChild = 0
                 findViewById<ViewFlipper>(R.id.menu_flipper).displayedChild = 0
@@ -129,7 +129,7 @@ class AppActivity : Activity() {
         }
     }
 
-    private fun createProject(finishCallback: (success: Project) -> Unit) {
+    private fun _createProject(finishCallback: (success: Project) -> Unit) {
         Thread {
             val projectsDir = File("${filesDir.path}/projects")
             if (!projectsDir.exists()) {
@@ -143,12 +143,14 @@ class AppActivity : Activity() {
 
             val config = """
             {
-                "name":"${ProjectConstructor.name}",
-                "targetOs":"${ProjectConstructor.targetOS}",
-                "version":"${project.compilerVersion}",
+                "name": "${ProjectConstructor.name}",
+                "targetOs": "${ProjectConstructor.targetOS}",
+                "version": "${project.compilerVersion}",
                 "libs": [
-                    "io",
-                    "_COMPILER_DIR_/libs/io.next"
+                    {
+                        "name": "io",
+                        "path": "_COMPILER_DIR_/libs/io.next"
+                    }
                 ]
             }
             """.trimIndent()
@@ -172,18 +174,18 @@ class AppActivity : Activity() {
         }.start()
     }
 
-    private fun changeProjectType(view: View) {
-        if (convertProjectTypeToResId(ProjectConstructor.type) == view.id) return
+    private fun _changeProjectType(view: View) {
+        if (_convertProjectTypeToResId(ProjectConstructor.type) == view.id) return
 
         val animator = ValueAnimator.ofFloat(0f, 3f)
         animator.duration = 200
         animator.addUpdateListener {
-            findViewById<RelativeLayout>(convertProjectTypeToResId(ProjectConstructor.type)).setPadding(0, 0, 0, dpToPx(abs((it.animatedValue as Float) - 3f)).toInt())
-            view.setPadding(0, 0, 0, dpToPx(it.animatedValue as Float).toInt())
+            findViewById<RelativeLayout>(_convertProjectTypeToResId(ProjectConstructor.type)).setPadding(0, 0, 0, _dpToPx(abs((it.animatedValue as Float) - 3f)).toInt())
+            view.setPadding(0, 0, 0, _dpToPx(it.animatedValue as Float).toInt())
         }
         animator.addListener(object: AnimatorListener {
             override fun onAnimationEnd(animation: Animator) {
-                ProjectConstructor.type = convertProjectTypeToString(view.id)
+                ProjectConstructor.type = _convertProjectTypeToString(view.id)
             }
 
             override fun onAnimationStart(animation: Animator) {}
@@ -193,7 +195,7 @@ class AppActivity : Activity() {
         animator.start()
     }
 
-    private fun loadProjects() {
+    private fun _loadProjects() {
         Thread {
             val projectsDir = File("${filesDir.path}/projects")
             if (!projectsDir.exists()) return@Thread
@@ -208,14 +210,14 @@ class AppActivity : Activity() {
                         ProjectConstructor.name = config.getString("name")
                         ProjectConstructor.targetOS = config.getString("targetOs")
 
-                        addProjectToUI(ProjectConstructor.create(dir))
+                        _addProjectToUI(ProjectConstructor.create(dir))
                     }
                 }
             }
         }.start()
     }
 
-    private fun addProjectToUI(project: Project) {
+    private fun _addProjectToUI(project: Project) {
         val field = LayoutInflater.from(this).inflate(R.layout.project_field, null)
         field.findViewById<TextView>(R.id.project_field_name).text = project.name
 
@@ -230,7 +232,7 @@ class AppActivity : Activity() {
         }
     }
 
-    private fun dpToPx(dp: Float): Float {
+    private fun _dpToPx(dp: Float): Float {
         return TypedValue.applyDimension(
             TypedValue.COMPLEX_UNIT_DIP,
             dp,
@@ -238,7 +240,7 @@ class AppActivity : Activity() {
         )
     }
 
-    private fun convertProjectTypeToString(value: Int): String {
+    private fun _convertProjectTypeToString(value: Int): String {
         return when (value) {
             R.id.project_type_empty -> "empty"
             R.id.project_type_terminal -> "terminal"
@@ -247,7 +249,7 @@ class AppActivity : Activity() {
         }
     }
 
-    private fun convertProjectTypeToResId(value: String): Int {
+    private fun _convertProjectTypeToResId(value: String): Int {
         return when (value) {
             "empty" -> R.id.project_type_empty
             "terminal" -> R.id.project_type_terminal
