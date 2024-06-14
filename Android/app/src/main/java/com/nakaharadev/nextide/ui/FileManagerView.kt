@@ -4,6 +4,7 @@ import android.animation.Animator
 import android.animation.ValueAnimator
 import android.content.Context
 import android.util.AttributeSet
+import android.util.Log
 import android.util.TypedValue
 import android.view.LayoutInflater
 import android.widget.EditText
@@ -32,6 +33,7 @@ class FileManagerView @JvmOverloads constructor(
     private var root: File? = null
     private var onCreateCallback: ((fileName: String, fileType: Int) -> File)? = null
     private var onOpenCallback: ((file: File) -> Unit)? = null
+    private var onDeleteCallback: ((file: File) -> Unit)? = null
 
     init {
         orientation = VERTICAL
@@ -43,6 +45,10 @@ class FileManagerView @JvmOverloads constructor(
 
     fun setOnOpenFileCallback(callback: (file: File) -> Unit) {
         onOpenCallback = callback
+    }
+
+    fun setOnDeleteCallback(callback: (file: File) -> Unit) {
+        onDeleteCallback = callback
     }
 
     fun setFilesRoot(root: File) {
@@ -60,14 +66,11 @@ class FileManagerView @JvmOverloads constructor(
     private fun _addDirToList(dir: File, root: LinearLayout) {
         val dirField = LayoutInflater.from(context).inflate(R.layout.dir_elem, null)
         dirField.findViewById<TextView>(R.id.dir_name).text = dir.name
-        dirField.setOnClickListener {
-            _openDirContent(dirField as LinearLayout)
-        }
 
         val contentLayout = dirField.findViewById<LinearLayout>(R.id.dir_content)
 
         dirField.findViewById<LinearLayout>(R.id.dir_title).setOnLongClickListener {
-            _openDirTools(dir.path, dirField as LinearLayout)
+            _openDirTools(dir, dirField as LinearLayout, root)
 
             return@setOnLongClickListener true
         }
@@ -96,8 +99,14 @@ class FileManagerView @JvmOverloads constructor(
         fileField.findViewById<TextView>(R.id.file_name).text = file.name
         root.addView(fileField)
 
-        fileField.setOnClickListener {
+        fileField.findViewById<LinearLayout>(R.id.file_title).setOnClickListener {
             onOpenCallback!!(file)
+        }
+
+        fileField.findViewById<LinearLayout>(R.id.file_title).setOnLongClickListener {
+            _openFileTools(file, fileField as LinearLayout, root)
+
+            return@setOnLongClickListener true
         }
 
         val fileNameSplit = file.name.split('.')
@@ -111,9 +120,50 @@ class FileManagerView @JvmOverloads constructor(
         }
     }
 
-    private fun _openDirTools(path: String, dir: LinearLayout) {
+    private fun _openFileTools(file: File, layout: LinearLayout, root: LinearLayout) {
+        layout.findViewById<ImageView>(R.id.file_delete_elem).setOnClickListener {
+            root.removeView(layout)
+
+            file.delete()
+        }
+
+        layout.findViewById<LinearLayout>(R.id.file_title).setOnClickListener {
+            val animator = ValueAnimator.ofInt(_dpToPx(25f).toInt(), 0)
+            animator.duration = 200
+            animator.addUpdateListener {
+                layout.findViewById<LinearLayout>(R.id.file_tools).layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, it.animatedValue as Int)
+            }
+            animator.start()
+
+            it.findViewById<LinearLayout>(R.id.file_title).setOnClickListener {
+                onOpenCallback!!(file)
+            }
+        }
+
+        val animator = ValueAnimator.ofInt(0, _dpToPx(25f).toInt())
+        animator.duration = 200
+        animator.addUpdateListener {
+            layout.findViewById<LinearLayout>(R.id.file_tools).layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, it.animatedValue as Int)
+        }
+        animator.start()
+    }
+
+    private fun _openDirTools(file: File, dir: LinearLayout, root: LinearLayout) {
         dir.findViewById<ImageView>(R.id.dir_add_elem).setOnClickListener {
-            _createNewElement(path, dir)
+            _createNewElement(file.path, dir) {
+                val animator = ValueAnimator.ofInt(_dpToPx(25f).toInt(), 0)
+                animator.duration = 200
+                animator.addUpdateListener {
+                    dir.findViewById<LinearLayout>(R.id.dir_tools).layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, it.animatedValue as Int)
+                }
+                animator.start()
+            }
+        }
+
+        dir.findViewById<ImageView>(R.id.dir_delete_elem).setOnClickListener {
+            root.removeView(dir)
+
+            _deleteDir(file)
         }
 
         dir.findViewById<LinearLayout>(R.id.dir_title).setOnClickListener {
@@ -141,7 +191,18 @@ class FileManagerView @JvmOverloads constructor(
         animator.start()
     }
 
-    private fun _createNewElement(path: String, dir: LinearLayout) {
+    private fun _deleteDir(dir: File) {
+        for (child in dir.listFiles()!!) {
+            if (child.isFile) {
+                child.delete()
+                onDeleteCallback!!(child)
+            } else {
+                _deleteDir(child)
+            }
+        }
+    }
+
+    private fun _createNewElement(path: String, dir: LinearLayout, callback: () -> Unit) {
         dir.findViewById<ViewFlipper>(R.id.dir_tools_flipper).displayedChild = 1
 
         val edit = dir.findViewById<EditText>(R.id.editor_new_file_name)
@@ -149,9 +210,15 @@ class FileManagerView @JvmOverloads constructor(
         dir.findViewById<ImageView>(R.id.elem_create_done).setOnClickListener {
             if (edit.text.isNotEmpty()) {
                 _addFileToList(onCreateCallback!!("$path/${edit.text}", ELEMENT_TYPE_FILE), dir.findViewById(R.id.dir_content))
-            }
 
-            dir.findViewById<ViewFlipper>(R.id.dir_tools_flipper).displayedChild = 0
+                onOpenCallback!!(File("$path/${edit.text}"))
+
+                dir.findViewById<ViewFlipper>(R.id.dir_tools_flipper).displayedChild = 0
+
+                callback()
+            } else {
+
+            }
         }
 
         dir.findViewById<RelativeLayout>(R.id.elem_create_dir_done).setOnClickListener {
@@ -160,6 +227,8 @@ class FileManagerView @JvmOverloads constructor(
             }
 
             dir.findViewById<ViewFlipper>(R.id.dir_tools_flipper).displayedChild = 0
+
+            callback()
         }
     }
 
@@ -194,14 +263,21 @@ class FileManagerView @JvmOverloads constructor(
     }
 
     private fun _getIconIdForFile(end: String?): Int {
-        if (end == "json") {
-            return R.drawable.json_file_icon
-        }
-        if (end == "next") {
-            return R.drawable.next_lang_icon
-        }
+        return when (end) {
+            "json" -> R.drawable.json_file_icon
+            "next" -> R.drawable.next_lang_icon
+            "xml" -> R.drawable.xml_icon
+            "html" -> R.drawable.html_icon
+            "css" -> R.drawable.css_icon
+            "js" -> R.drawable.js_icon
+            "svg" -> R.drawable.svg_icon
+            "cpp" -> R.drawable.cpp_icon
+            "asm" -> R.drawable.asm_icon
 
-        return 0
+            else -> {
+                R.drawable.done_icon
+            }
+        }
     }
 
     private fun _dpToPx(dp: Float): Float {

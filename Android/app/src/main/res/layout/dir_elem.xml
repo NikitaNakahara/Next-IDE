@@ -36,11 +36,23 @@
             android:id="@+id/dir_tools_flipper"
             android:inAnimation="@anim/flipper_in"
             android:outAnimation="@anim/flipper_out">
-            <ImageView
-                android:layout_width="25dp"
-                android:layout_height="25dp"
-                android:src="@drawable/non_bg_add_icon"
-                android:id="@+id/dir_add_elem"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="25dp">
+                <ImageView
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:src="@drawable/non_bg_add_icon"
+                    android:id="@+id/dir_add_elem"
+                    android:layout_marginEnd="5dp"/>
+                <ImageView
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:src="@drawable/delete_icon"
+                    android:id="@+id/dir_delete_elem"
+                    android:layout_marginEnd="10dp"
+                    android:padding="3dp"/>
+            </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"

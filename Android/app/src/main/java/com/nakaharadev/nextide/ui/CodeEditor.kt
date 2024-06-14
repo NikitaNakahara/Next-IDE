@@ -122,7 +122,23 @@ class CodeEditor @JvmOverloads constructor(
         invalidate()
     }
 
-    private inner class EditableFile(file: File) {
+    fun removeFile(file: File) {
+        for (f in files) {
+            if (f.equals(file)) {
+                files.remove(f)
+            }
+        }
+
+        if (currentOpenedFile != null) {
+            if (currentOpenedFile!!.equals(file)) {
+                currentOpenedFile = if (files.size >= 1) files[0] else null
+            }
+        }
+
+        invalidate()
+    }
+
+    private inner class EditableFile(val file: File) {
         var name: String
         var lines = ArrayList<String>()
         var highLight: HighLight? = null
@@ -161,6 +177,10 @@ class CodeEditor @JvmOverloads constructor(
 
             highLight = HighLight.getInstance(fileType, lines)
             highLight?.initHighLight()
+        }
+
+        fun equals(f: File): Boolean {
+            return file.path == f.path
         }
 
         fun save() {

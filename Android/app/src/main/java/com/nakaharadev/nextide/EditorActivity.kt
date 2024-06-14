@@ -16,7 +16,9 @@ import android.widget.TextView
 import android.widget.Toast
 import com.nakaharadev.nextide.ui.CodeEditor
 import com.nakaharadev.nextide.ui.FileManagerView
+import java.io.DataOutputStream
 import java.io.File
+import java.io.FileOutputStream
 import kotlin.math.abs
 
 class EditorActivity : Activity() {
@@ -90,7 +92,10 @@ class EditorActivity : Activity() {
         fileManager.setOnCreateCallback { fileName, fileType ->
             Toast.makeText(this@EditorActivity, "$fileName | $fileType", Toast.LENGTH_SHORT).show()
             val newFile = File(fileName)
-            if (fileType == FileManagerView.ELEMENT_TYPE_FILE) newFile.createNewFile()
+            if (fileType == FileManagerView.ELEMENT_TYPE_FILE) {
+                newFile.createNewFile()
+                DataOutputStream(FileOutputStream(newFile)).writeUTF("")
+            }
             else newFile.mkdir()
 
             return@setOnCreateCallback newFile
@@ -98,6 +103,9 @@ class EditorActivity : Activity() {
         fileManager.setOnOpenFileCallback {
             findViewById<CodeEditor>(R.id.editor).addFile(it)
             _toggleMenuState(findViewById(R.id.toggle_menu_state))
+        }
+        fileManager.setOnDeleteCallback {
+            findViewById<CodeEditor>(R.id.editor).removeFile(it)
         }
     }
 

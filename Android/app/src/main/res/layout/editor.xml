@@ -61,7 +61,8 @@
         android:divider="#999"
         android:dividerPadding="5dp"
         android:showDividers="middle"
-        android:paddingVertical="15dp">
+        android:paddingVertical="15dp"
+        android:clickable="true">
         <HorizontalScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
