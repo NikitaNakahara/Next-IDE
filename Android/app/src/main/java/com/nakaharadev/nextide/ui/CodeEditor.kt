@@ -123,11 +123,13 @@ class CodeEditor @JvmOverloads constructor(
     }
 
     fun removeFile(file: File) {
+        var delFile: EditableFile? = null
         for (f in files) {
             if (f.equals(file)) {
-                files.remove(f)
+                delFile = f
             }
         }
+        files.remove(delFile)
 
         if (currentOpenedFile != null) {
             if (currentOpenedFile!!.equals(file)) {

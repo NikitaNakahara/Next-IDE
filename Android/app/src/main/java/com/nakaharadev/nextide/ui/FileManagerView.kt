@@ -125,6 +125,7 @@ class FileManagerView @JvmOverloads constructor(
             root.removeView(layout)
 
             file.delete()
+            onDeleteCallback!!(file)
         }
 
         layout.findViewById<LinearLayout>(R.id.file_title).setOnClickListener {
@@ -200,6 +201,7 @@ class FileManagerView @JvmOverloads constructor(
                 _deleteDir(child)
             }
         }
+        dir.delete()
     }
 
     private fun _createNewElement(path: String, dir: LinearLayout, callback: () -> Unit) {
