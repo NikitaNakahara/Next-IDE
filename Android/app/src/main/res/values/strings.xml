@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Next IDE</string>
+    <string name="file_will_write_in_res_images_dir">файл будет записан в <font face="sans-serif" color="#ffffff">res/images</font></string>
 </resources>

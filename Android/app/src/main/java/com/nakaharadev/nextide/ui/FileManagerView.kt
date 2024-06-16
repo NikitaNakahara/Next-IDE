@@ -3,6 +3,7 @@ package com.nakaharadev.nextide.ui
 import android.animation.Animator
 import android.animation.ValueAnimator
 import android.content.Context
+import android.graphics.BitmapFactory
 import android.util.AttributeSet
 import android.util.Log
 import android.util.TypedValue
@@ -14,6 +15,7 @@ import android.widget.RelativeLayout
 import android.widget.TextView
 import android.widget.Toast
 import android.widget.ViewFlipper
+import androidx.core.view.allViews
 import com.nakaharadev.nextide.R
 import java.io.File
 
@@ -63,6 +65,13 @@ class FileManagerView @JvmOverloads constructor(
         }
     }
 
+    fun sync() {
+        removeAllViews()
+
+        if (root != null)
+            setFilesRoot(root!!)
+    }
+
     private fun _addDirToList(dir: File, root: LinearLayout) {
         val dirField = LayoutInflater.from(context).inflate(R.layout.dir_elem, null)
         dirField.findViewById<TextView>(R.id.dir_name).text = dir.name
@@ -95,6 +104,10 @@ class FileManagerView @JvmOverloads constructor(
     }
 
     private fun _addFileToList(file: File, root: LinearLayout) {
+        val fileNameSplit = file.name.split('.')
+
+        var isImage = fileNameSplit[fileNameSplit.size - 1] == "png" || fileNameSplit[fileNameSplit.size - 1] == "jpg"
+
         val fileField = LayoutInflater.from(context).inflate(R.layout.file_elem, null)
         fileField.findViewById<TextView>(R.id.file_name).text = file.name
         root.addView(fileField)
@@ -109,14 +122,19 @@ class FileManagerView @JvmOverloads constructor(
             return@setOnLongClickListener true
         }
 
-        val fileNameSplit = file.name.split('.')
-        if (fileNameSplit.size == 1) {
-            fileField.findViewById<ImageView>(R.id.file_icon).setImageResource(_getIconIdForFile(null))
-        } else {
-            val iconId = _getIconIdForFile(fileNameSplit[fileNameSplit.size - 1])
-            if (iconId != 0) {
-                fileField.findViewById<ImageView>(R.id.file_icon).setImageResource(iconId)
+        if (!isImage) {
+            if (fileNameSplit.size == 1) {
+                fileField.findViewById<ImageView>(R.id.file_icon)
+                    .setImageResource(_getIconIdForFile(null))
+            } else {
+                val iconId = _getIconIdForFile(fileNameSplit[fileNameSplit.size - 1])
+                if (iconId != 0) {
+                    fileField.findViewById<ImageView>(R.id.file_icon).setImageResource(iconId)
+                }
             }
+        } else {
+            val bitmap = BitmapFactory.decodeFile(file.path)
+            fileField.findViewById<ImageView>(R.id.file_icon).setImageBitmap(bitmap)
         }
     }
 

@@ -2,6 +2,8 @@ package com.nakaharadev.nextide.ui
 
 import android.app.Activity
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
@@ -173,6 +175,9 @@ class CodeEditor @JvmOverloads constructor(
             if (index != -1) {
                 currentOpenedFile = files[index]
             }
+
+            textOffsetX = 0f
+            textOffsetY = 0f
         } else {
             requestFocus()
 
@@ -258,6 +263,8 @@ class CodeEditor @JvmOverloads constructor(
         var lines = ArrayList<String>()
         var highLight: HighLight? = null
         var fileType = ""
+        var isImage = false
+        var image: Bitmap? = null
 
         var maxWidth = 0f
 
@@ -266,32 +273,37 @@ class CodeEditor @JvmOverloads constructor(
 
             val nameSepArr = name.split('.')
             if (nameSepArr.size > 1) fileType = nameSepArr[nameSepArr.size - 1]
+            isImage = fileType == "png" || fileType == "jpg"
 
-            var data = ""
-            try {
-                val input = DataInputStream(FileInputStream(file))
-                data = input.readUTF()
-                input.close()
-            } catch (e: InvocationTargetException) {
-                e.printStackTrace()
-            }
-
-            var line = ""
-            for (c in data) {
-                if (c == '\n') {
-                    lines.add(line)
-                    if (line.length > maxWidth) maxWidth = line.length.toFloat()
-                    Log.i("max width", "$maxWidth")
-
-                    line = ""
-                } else {
-                    line += c
+            if (!isImage) {
+                var data = ""
+                try {
+                    val input = DataInputStream(FileInputStream(file))
+                    data = input.readUTF()
+                    input.close()
+                } catch (e: InvocationTargetException) {
+                    e.printStackTrace()
                 }
-            }
-            lines.add(line)
 
-            highLight = HighLight.getInstance(fileType, lines)
-            highLight?.initHighLight()
+                var line = ""
+                for (c in data) {
+                    if (c == '\n') {
+                        lines.add(line)
+                        if (line.length > maxWidth) maxWidth = line.length.toFloat()
+                        Log.i("max width", "$maxWidth")
+
+                        line = ""
+                    } else {
+                        line += c
+                    }
+                }
+                lines.add(line)
+
+                highLight = HighLight.getInstance(fileType, lines)
+                highLight?.initHighLight()
+            } else {
+                image = BitmapFactory.decodeFile(file.path)
+            }
         }
 
         override fun equals(other: Any?): Boolean {
@@ -311,25 +323,73 @@ class CodeEditor @JvmOverloads constructor(
         }
 
         fun print(canvas: Canvas) {
-            paint.isAntiAlias = true
-            paint.setTypeface(Typeface.MONOSPACE)
-            paint.textSize = textSize
-            paint.style = Paint.Style.FILL
+            if (!isImage) {
+                paint.isAntiAlias = true
+                paint.setTypeface(Typeface.MONOSPACE)
+                paint.textSize = textSize
+                paint.style = Paint.Style.FILL
 
-            for (token in highLight?.getTokens()!!) {
-                paint.color = token.color
-                canvas.drawText(token.lexeme, token.startXPos * paint.measureText(" ") + linesBarWidth + textOffsetX, token.yPos * (textSize + textPadding) + _dpToPx(FILES_LIST_HEIGHT_DP), paint)
-            }
+                for (token in highLight?.getTokens()!!) {
+                    paint.color = token.color
+                    canvas.drawText(
+                        token.lexeme,
+                        token.startXPos * paint.measureText(" ") + linesBarWidth + textOffsetX,
+                        token.yPos * (textSize + textPadding) + _dpToPx(FILES_LIST_HEIGHT_DP),
+                        paint
+                    )
+                }
 
-            paint.setColor(context.resources.getColor(R.color.window_bg))
-            canvas.drawRect(0f, _dpToPx(FILES_LIST_HEIGHT_DP), linesBarWidth, (textSize + textPadding) * (lines.size + 1) + _dpToPx(FILES_LIST_HEIGHT_DP), paint)
+                paint.setColor(context.resources.getColor(R.color.window_bg))
+                canvas.drawRect(
+                    0f,
+                    _dpToPx(FILES_LIST_HEIGHT_DP),
+                    linesBarWidth,
+                    (textSize + textPadding) * (lines.size + 1) + _dpToPx(FILES_LIST_HEIGHT_DP),
+                    paint
+                )
 
-            paint.setColor(context.resources.getColor(R.color.main_text))
-            canvas.drawLine(linesBarWidth, _dpToPx(FILES_LIST_HEIGHT_DP), linesBarWidth, (textSize + textPadding) * (lines.size + 1) + _dpToPx(FILES_LIST_HEIGHT_DP), paint)
+                paint.setColor(context.resources.getColor(R.color.main_text))
+                canvas.drawLine(
+                    linesBarWidth,
+                    _dpToPx(FILES_LIST_HEIGHT_DP),
+                    linesBarWidth,
+                    (textSize + textPadding) * (lines.size + 1) + _dpToPx(FILES_LIST_HEIGHT_DP),
+                    paint
+                )
 
-            paint.color = resources.getColor(R.color.gray_text)
-            for (i in lines.indices) {
-                canvas.drawText((i + 1).toString(), 5f, (i + 1) * (textSize + textPadding) + _dpToPx(FILES_LIST_HEIGHT_DP), paint)
+                paint.color = resources.getColor(R.color.gray_text)
+                for (i in lines.indices) {
+                    canvas.drawText(
+                        (i + 1).toString(),
+                        5f,
+                        (i + 1) * (textSize + textPadding) + _dpToPx(FILES_LIST_HEIGHT_DP),
+                        paint
+                    )
+                }
+            } else {
+                val dst = Rect()
+
+                if (image?.width!! < image?.height!!) {
+                    dst.top = _dpToPx(FILES_LIST_HEIGHT_DP).toInt()
+                    dst.bottom = height
+
+                    val ratio = dst.height().toFloat() / image?.height!!
+                    val imageWidth = (image?.width!! * ratio).toInt()
+
+                    dst.left = width / 2 - imageWidth / 2
+                    dst.right = dst.left + imageWidth
+                } else {
+                    dst.left = 0
+                    dst.right = width
+
+                    val ratio = dst.width().toFloat() / image?.width!!
+                    val imageHeight = (image?.height!! * ratio).toInt()
+
+                    dst.top = height / 2 - imageHeight / 2
+                    dst.bottom = dst.top + imageHeight
+                }
+
+                canvas.drawBitmap(image!!, null, dst, paint)
             }
         }
     }

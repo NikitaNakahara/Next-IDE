@@ -80,7 +80,13 @@
                     android:layout_width="30dp"
                     android:layout_height="30dp"
                     android:src="@drawable/stackoverflow_icon"
-                    android:id="@+id/open_stackoverflow"/>
+                    android:id="@+id/open_stackoverflow"
+                    android:layout_marginEnd="10dp"/>
+                <ImageView
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:src="@drawable/import_icon"
+                    android:id="@+id/import_resource"/>
             </LinearLayout>
         </HorizontalScrollView>
         <com.nakaharadev.nextide.ui.FileManagerView
@@ -89,5 +95,67 @@
             android:layout_weight="1"
             android:layout_marginTop="10dp"
             android:id="@+id/editor_file_manager"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="280dp"
+        android:layout_alignParentBottom="true"
+        android:background="@drawable/import_bg"
+        android:paddingTop="10dp"
+        android:orientation="vertical"
+        android:id="@+id/import_layout"
+        android:translationY="280dp"
+        android:clickable="true">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:orientation="horizontal"
+            android:paddingHorizontal="20dp">
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/image_icon"
+                android:padding="10dp"
+                android:background="@drawable/selected_import_bg"
+                android:id="@+id/import_image"/>
+            <EditText
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:background="@color/transparent"
+                android:hint="имя файла"
+                android:textColorHint="@color/gray_text"
+                android:textColor="@color/main_text"
+                android:textSize="17sp"
+                android:paddingStart="5dp"
+                android:id="@+id/image_name_input"/>
+            <Spinner
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:entries="@array/import_image_extensions"
+                android:textColor="@color/gray_text"
+                android:textSize="17sp"
+                android:background="@color/transparent"
+                android:paddingVertical="3dp"
+                android:id="@+id/import_image_extensions"/>
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/done_icon"
+                android:id="@+id/import_done"/>
+        </LinearLayout>
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:src="@drawable/import_img_icon"
+            android:id="@+id/import_image_field"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="30dp"
+            android:text="@string/file_will_write_in_res_images_dir"
+            android:paddingStart="20dp"
+            android:paddingBottom="5dp"/>
     </LinearLayout>
 </RelativeLayout>
