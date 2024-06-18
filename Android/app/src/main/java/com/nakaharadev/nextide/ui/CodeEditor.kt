@@ -10,15 +10,18 @@ import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.Typeface
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.VectorDrawable
 import android.util.AttributeSet
 import android.util.Log
 import android.util.TypedValue
 import android.view.MotionEvent
 import android.view.View
 import android.view.inputmethod.InputMethodManager
-import android.widget.Toast
+import androidx.core.content.ContextCompat
 import com.nakaharadev.nextide.R
 import com.nakaharadev.nextide.langs.highlight.HighLight
+import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
 import java.io.File
 import java.io.FileInputStream
@@ -51,8 +54,8 @@ class CodeEditor @JvmOverloads constructor(
 
     private var headerTextOffset = 0f
 
-    private var cursorX = 0f
-    private var cursorY = 0f
+    private var cursorX = 0
+    private var cursorY = 0
 
     private var isCodeScroll = false
 
@@ -179,10 +182,17 @@ class CodeEditor @JvmOverloads constructor(
             textOffsetX = 0f
             textOffsetY = 0f
         } else {
-            requestFocus()
+            if (!currentOpenedFile?.isImage!!) {
+                requestFocus()
 
-            val inputMethodManager = context.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
-            inputMethodManager.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT)
+                val inputMethodManager =
+                    context.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+                inputMethodManager.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT)
+
+                val pos = _getCursorPos(xPos, yPos)
+            } else {
+                currentOpenedFile?.toggleBinaryDrawMode(xPos, yPos)
+            }
         }
 
         invalidate()
@@ -231,6 +241,36 @@ class CodeEditor @JvmOverloads constructor(
         invalidate()
     }
 
+    private fun _getCursorPos(xPos: Int, yPos: Int): Pair<Float, Float> {
+        return Pair(
+            _getCursorX(xPos),
+            _getCursorY(yPos)
+        )
+    }
+
+    private fun _getCursorPos(xPos: Float, yPos: Float): Pair<Int, Int> {
+        return Pair(
+            _getCursorX(xPos),
+            _getCursorY(yPos)
+        )
+    }
+
+    private fun _getCursorX(xPos: Int): Float {
+        return 0f
+    }
+
+    private fun _getCursorY(yPos: Int): Float {
+        return 0f
+    }
+
+    private fun _getCursorX(xPos: Float): Int {
+        return 0
+    }
+
+    private fun _getCursorY(yPos: Float): Int {
+        return 0
+    }
+
     private fun _dpToPx(dp: Float): Float {
         return TypedValue.applyDimension(
             TypedValue.COMPLEX_UNIT_DIP,
@@ -258,17 +298,46 @@ class CodeEditor @JvmOverloads constructor(
         return -1
     }
 
+    private fun _getVectorBitmap(context: Context, drawableId: Int): Bitmap? {
+        var bitmap: Bitmap? = null
+        when (val drawable = ContextCompat.getDrawable(context, drawableId)) {
+            is BitmapDrawable -> {
+                bitmap = drawable.bitmap
+            }
+            is VectorDrawable -> {
+                bitmap = Bitmap.createBitmap(
+                    drawable.intrinsicWidth,
+                    drawable.intrinsicHeight, Bitmap.Config.ARGB_8888
+                )
+                val canvas = Canvas(bitmap)
+                drawable.setBounds(0, 0, canvas.width, canvas.height)
+                drawable.draw(canvas)
+            }
+        }
+        return bitmap
+    }
+
+    @OptIn(ExperimentalStdlibApi::class)
     private inner class EditableFile(val file: File) {
         var name: String
         var lines = ArrayList<String>()
         var highLight: HighLight? = null
         var fileType = ""
         var isImage = false
+        var isBinary = false
         var image: Bitmap? = null
+        var bytesArray: List<String>? = null
 
         var maxWidth = 0f
 
+        val toggleModeDst = Rect()
+
         init {
+            toggleModeDst.top = _dpToPx(FILES_LIST_HEIGHT_DP + 20f).toInt()
+            toggleModeDst.bottom = toggleModeDst.top + _dpToPx(30f).toInt()
+            toggleModeDst.right = width - _dpToPx(20f).toInt()
+            toggleModeDst.left = toggleModeDst.right - toggleModeDst.height()
+
             name = file.name
 
             val nameSepArr = name.split('.')
@@ -303,6 +372,23 @@ class CodeEditor @JvmOverloads constructor(
                 highLight?.initHighLight()
             } else {
                 image = BitmapFactory.decodeFile(file.path)
+
+                val stream = ByteArrayOutputStream()
+                val compressFormat: Bitmap.CompressFormat
+                if (fileType == "png") {
+                    compressFormat = Bitmap.CompressFormat.PNG
+                } else {
+                    compressFormat = Bitmap.CompressFormat.JPEG
+                }
+                image?.compress(compressFormat, 100, stream)
+                val arr = stream.toByteArray()
+                val hexFormat = HexFormat {
+                    bytes {
+                        byteSeparator=" "
+                        upperCase=true
+                    }
+                }
+                bytesArray = arr.toHexString(hexFormat).split(" ")
             }
         }
 
@@ -322,8 +408,69 @@ class CodeEditor @JvmOverloads constructor(
 
         }
 
+        fun toggleBinaryDrawMode(xPos: Float, yPos: Float) {
+            if (xPos > toggleModeDst.left && xPos < toggleModeDst.right && yPos > toggleModeDst.top && yPos < toggleModeDst.bottom)
+                isBinary = !isBinary
+        }
+
         fun print(canvas: Canvas) {
-            if (!isImage) {
+            if (isImage && !isBinary) {
+                val dst = Rect()
+
+                if (image?.width!! < image?.height!!) {
+                    dst.top = _dpToPx(FILES_LIST_HEIGHT_DP).toInt()
+                    dst.bottom = height
+
+                    val ratio = dst.height().toFloat() / image?.height!!
+                    val imageWidth = (image?.width!! * ratio).toInt()
+
+                    dst.left = width / 2 - imageWidth / 2
+                    dst.right = dst.left + imageWidth
+                } else {
+                    dst.left = 0
+                    dst.right = width
+
+                    val ratio = dst.width().toFloat() / image?.width!!
+                    val imageHeight = (image?.height!! * ratio).toInt()
+
+                    dst.top = height / 2 - imageHeight / 2
+                    dst.bottom = dst.top + imageHeight
+                }
+
+                canvas.drawBitmap(image!!, null, dst, paint)
+
+                paint.color = Color.BLACK
+                canvas.drawCircle(toggleModeDst.left + toggleModeDst.width() / 2f, toggleModeDst.top + toggleModeDst.height() / 2f, _dpToPx(22f), paint)
+
+                paint.color = Color.WHITE
+                canvas.drawBitmap(_getVectorBitmap(context, R.drawable.binary_icon)!!, null, toggleModeDst, paint)
+            } else if (isBinary) {
+                paint.color = resources.getColor(R.color.window_bg)
+                canvas.drawRect(0f, _dpToPx(FILES_LIST_HEIGHT_DP), width.toFloat(), height.toFloat(), paint)
+
+                paint.color = Color.BLACK
+                canvas.drawRoundRect(0f, toggleModeDst.bottom.toFloat() + 15f, toggleModeDst.left.toFloat() - 40f, height.toFloat(), 20f, 20f, paint)
+
+                paint.color = context.resources.getColor(R.color.main_text)
+                paint.setTypeface(Typeface.MONOSPACE)
+                paint.textSize = 33f
+
+                var x = 20f
+                for (i: Int in 0..<4) {
+                    for (j: Int in 0..<4) {
+                        canvas.drawText(bytesArray?.get(i * j) ?: "", x, toggleModeDst.bottom + 60f, paint)
+
+                        x += paint.measureText(" ") * 2 + 10f
+                    }
+
+                    x += paint.measureText(" ")
+                }
+
+                if (isImage) {
+                    paint.color = Color.WHITE
+                    canvas.drawBitmap(_getVectorBitmap(context, R.drawable.close_binary_icon)!!, null, toggleModeDst, paint)
+                }
+            } else {
                 paint.isAntiAlias = true
                 paint.setTypeface(Typeface.MONOSPACE)
                 paint.textSize = textSize
@@ -366,31 +513,21 @@ class CodeEditor @JvmOverloads constructor(
                         paint
                     )
                 }
-            } else {
-                val dst = Rect()
-
-                if (image?.width!! < image?.height!!) {
-                    dst.top = _dpToPx(FILES_LIST_HEIGHT_DP).toInt()
-                    dst.bottom = height
-
-                    val ratio = dst.height().toFloat() / image?.height!!
-                    val imageWidth = (image?.width!! * ratio).toInt()
-
-                    dst.left = width / 2 - imageWidth / 2
-                    dst.right = dst.left + imageWidth
-                } else {
-                    dst.left = 0
-                    dst.right = width
-
-                    val ratio = dst.width().toFloat() / image?.width!!
-                    val imageHeight = (image?.height!! * ratio).toInt()
-
-                    dst.top = height / 2 - imageHeight / 2
-                    dst.bottom = dst.top + imageHeight
-                }
-
-                canvas.drawBitmap(image!!, null, dst, paint)
             }
+        }
+
+        override fun hashCode(): Int {
+            var result = file.hashCode()
+
+            result = 31 * result + name.hashCode()
+            result = 31 * result + lines.hashCode()
+            result = 31 * result + (highLight?.hashCode() ?: 0)
+            result = 31 * result + fileType.hashCode()
+            result = 31 * result + isImage.hashCode()
+            result = 31 * result + (image?.hashCode() ?: 0)
+            result = 31 * result + maxWidth.hashCode()
+
+            return result
         }
     }
 }
