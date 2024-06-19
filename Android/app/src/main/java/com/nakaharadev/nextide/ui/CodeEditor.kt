@@ -344,7 +344,25 @@ class CodeEditor @JvmOverloads constructor(
             if (nameSepArr.size > 1) fileType = nameSepArr[nameSepArr.size - 1]
             isImage = fileType == "png" || fileType == "jpg"
 
-            if (!isImage) {
+            if (isImage) {
+                image = BitmapFactory.decodeFile(file.path)
+
+                val stream = ByteArrayOutputStream()
+                val compressFormat = 
+                    if (fileType == "png")
+                        Bitmap.CompressFormat.PNG
+                    else
+                        Bitmap.CompressFormat.JPEG
+                image?.compress(compressFormat, 100, stream)
+                val arr = stream.toByteArray()
+                val hexFormat = HexFormat {
+                    bytes {
+                        byteSeparator=" "
+                        upperCase=true
+                    }
+                }
+                bytesArray = arr.toHexString(hexFormat).split(" ")
+            } else {
                 var data = ""
                 try {
                     val input = DataInputStream(FileInputStream(file))
@@ -370,25 +388,6 @@ class CodeEditor @JvmOverloads constructor(
 
                 highLight = HighLight.getInstance(fileType, lines)
                 highLight?.initHighLight()
-            } else {
-                image = BitmapFactory.decodeFile(file.path)
-
-                val stream = ByteArrayOutputStream()
-                val compressFormat: Bitmap.CompressFormat
-                if (fileType == "png") {
-                    compressFormat = Bitmap.CompressFormat.PNG
-                } else {
-                    compressFormat = Bitmap.CompressFormat.JPEG
-                }
-                image?.compress(compressFormat, 100, stream)
-                val arr = stream.toByteArray()
-                val hexFormat = HexFormat {
-                    bytes {
-                        byteSeparator=" "
-                        upperCase=true
-                    }
-                }
-                bytesArray = arr.toHexString(hexFormat).split(" ")
             }
         }
 
