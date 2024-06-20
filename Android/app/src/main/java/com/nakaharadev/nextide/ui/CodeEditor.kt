@@ -31,7 +31,7 @@ class CodeEditor @JvmOverloads constructor(
     defStyleAttr: Int = 0,
     defStyleRes: Int = 0
 ) : View(context, attrs, defStyleAttr) {
-    private var currentOpenedFile: AbstractFile? = null
+    private var currentOpenedFileIndex = -1
     private val files = ArrayList<AbstractFile>()
     private var paint = Paint()
 
@@ -59,6 +59,9 @@ class CodeEditor @JvmOverloads constructor(
     private var loadBarHeight = 0
     private var loadBarAnimator: ValueAnimator? = null
 
+    val loadRect = Rect()
+    val headerRect = RectF()
+
     companion object {
         internal const val FILES_LIST_HEIGHT_DP = 40f
     }
@@ -70,13 +73,12 @@ class CodeEditor @JvmOverloads constructor(
             paint.color = context.getColor(R.color.window_bg)
             paint.style = Paint.Style.FILL
 
-            val rect = RectF()
-            rect.left = 0f
-            rect.top = 0f
-            rect.right = width.toFloat()
-            rect.bottom = _dpToPx(FILES_LIST_HEIGHT_DP)
+            headerRect.left = 0f
+            headerRect.top = 0f
+            headerRect.right = width.toFloat()
+            headerRect.bottom = _dpToPx(FILES_LIST_HEIGHT_DP)
 
-            canvas.drawRect(rect, paint)
+            canvas.drawRect(headerRect, paint)
 
             paint.isAntiAlias = true
             paint.setTypeface(Typeface.MONOSPACE)
@@ -86,16 +88,16 @@ class CodeEditor @JvmOverloads constructor(
 
             var barWidth = 30f
             for (i in files.indices) {
-                if (files[i] == currentOpenedFile) {
+                if (i == currentOpenedFileIndex) {
                     paint.color = context.getColor(R.color.main_ui_1)
-                    rect.left = barWidth + 25f + headerTextOffset
-                    rect.top = _dpToPx(FILES_LIST_HEIGHT_DP) - 5f
-                    rect.right = barWidth + 25f + headerTextOffset + paint.measureText(files[i].name)
-                    rect.bottom = _dpToPx(FILES_LIST_HEIGHT_DP)
+                    headerRect.left = barWidth + 25f + headerTextOffset
+                    headerRect.top = _dpToPx(FILES_LIST_HEIGHT_DP) - 5f
+                    headerRect.right = barWidth + 25f + headerTextOffset + paint.measureText(files[i].name)
+                    headerRect.bottom = _dpToPx(FILES_LIST_HEIGHT_DP)
 
                     paint.color = context.getColor(R.color.main_ui_1)
 
-                    canvas.drawRect(rect, paint)
+                    canvas.drawRect(headerRect, paint)
 
                     paint.color = context.getColor(R.color.light_gray_text)
                 }
@@ -105,12 +107,10 @@ class CodeEditor @JvmOverloads constructor(
             }
         }
 
-        if (currentOpenedFile != null) {
-            currentOpenedFile?.print(canvas)
+        if (currentOpenedFileIndex > -1) {
+            files[currentOpenedFileIndex].print(canvas)
         }
-
-        val loadRect = Rect()
-        loadRect.top = if (currentOpenedFile != null) _dpToPx(FILES_LIST_HEIGHT_DP).toInt() else 0
+        loadRect.top = if (currentOpenedFileIndex > -1) _dpToPx(FILES_LIST_HEIGHT_DP).toInt() else 0
         loadRect.left = loadBarX
         loadRect.right = loadBarX + loadBarWidth + loadBarX + (loadBarWidth / 100)
         loadRect.bottom = loadRect.top + loadBarHeight
@@ -144,9 +144,9 @@ class CodeEditor @JvmOverloads constructor(
                 scrollX = event.x
 
                 if (isCodeScroll) {
-                    if (currentOpenedFile == null) return false
+                    if (currentOpenedFileIndex == -1) return false
 
-                    currentOpenedFile!!.move(deltaX, 0f)
+                    files[currentOpenedFileIndex].move(deltaX, 0f)
                 } else {
                     if (fullHeaderLength > width) {
                         headerTextOffset += deltaX
@@ -171,27 +171,27 @@ class CodeEditor @JvmOverloads constructor(
     }
 
     fun click(xPos: Float, yPos: Float) {
-        if (currentOpenedFile == null) return
+        if (currentOpenedFileIndex == -1) return
 
         if (_clickPosIsHeader(yPos)) {
             val index = _getFileIndex(xPos)
             if (index != -1) {
-                currentOpenedFile = files[index]
+                currentOpenedFileIndex = index
             }
 
             textOffsetX = 0f
             textOffsetY = 0f
         } else {
-            if (currentOpenedFile is CodeFile) {
+            if (files[currentOpenedFileIndex] is CodeFile) {
                 requestFocus()
 
                 val inputMethodManager =
                     context.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
                 inputMethodManager.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT)
 
-                (currentOpenedFile as CodeFile).click(xPos, yPos)
+                (files[currentOpenedFileIndex] as CodeFile).click(xPos, yPos)
             } else {
-                (currentOpenedFile as ImageFile).toggleBinaryDrawMode(xPos, yPos)
+                (files[currentOpenedFileIndex] as ImageFile).toggleBinaryDrawMode(xPos, yPos)
             }
         }
 
@@ -205,9 +205,11 @@ class CodeEditor @JvmOverloads constructor(
             files.removeAt(0)
         }
 
-        for (f in files) {
-            if (f.equals(file)) {
-                currentOpenedFile = f
+        for (i in files.indices) {
+            if (files[i] == file) {
+                currentOpenedFileIndex = i
+
+                _hideLoadBar()
 
                 invalidate()
                 return
@@ -220,7 +222,7 @@ class CodeEditor @JvmOverloads constructor(
             width, height
         )) {
             files.add(it)
-            currentOpenedFile = it
+            currentOpenedFileIndex = files.size - 1
 
             paint.setTypeface(Typeface.MONOSPACE)
             paint.textSize = headerTextSize
@@ -235,15 +237,15 @@ class CodeEditor @JvmOverloads constructor(
     fun removeFile(file: File) {
         var delFile: AbstractFile? = null
         for (f in files) {
-            if (f.equals(file)) {
+            if (f == file) {
                 delFile = f
             }
         }
         files.remove(delFile)
 
-        if (currentOpenedFile != null) {
-            if (currentOpenedFile!!.equals(file)) {
-                currentOpenedFile = if (files.size >= 1) files[0] else null
+        if (currentOpenedFileIndex > -1) {
+            if (files[currentOpenedFileIndex] == file) {
+                currentOpenedFileIndex = if (files.size >= 1) 0 else -1
             }
         }
 

@@ -33,9 +33,13 @@ class CodeFile(
     private lateinit var lines: ArrayList<String>
     private lateinit var highLight: HighLight
 
+    private var filesListHeight = 0f
+
     init {
         Thread {
             super.name = file.name
+
+            filesListHeight = _dpToPx(CodeEditor.FILES_LIST_HEIGHT_DP)
 
             var data = ""
             try {
@@ -119,7 +123,7 @@ class CodeFile(
         paint.setColor(context.getColor(R.color.window_bg))
         canvas.drawRect(
             0f,
-            _dpToPx(CodeEditor.FILES_LIST_HEIGHT_DP),
+            filesListHeight,
             linesBarWidth,
             (textSize + textPadding) * (lines.size + 1) + _dpToPx(CodeEditor.FILES_LIST_HEIGHT_DP),
             paint
@@ -128,7 +132,7 @@ class CodeFile(
         paint.setColor(context.getColor(R.color.main_text))
         canvas.drawLine(
             linesBarWidth,
-            _dpToPx(CodeEditor.FILES_LIST_HEIGHT_DP),
+            filesListHeight,
             linesBarWidth,
             (textSize + textPadding) * (lines.size + 1) + _dpToPx(CodeEditor.FILES_LIST_HEIGHT_DP),
             paint

@@ -33,6 +33,10 @@ class ImageFile(
     private var image: Bitmap? = null
     private var bytesArray: List<String>? = null
 
+    private val dst = Rect()
+
+    private val vectorBitmapMap = HashMap<Int, Bitmap?>()
+
     init {
         Thread {
             toggleModeDst.top = _dpToPx(CodeEditor.FILES_LIST_HEIGHT_DP + 20f).toInt()
@@ -60,6 +64,26 @@ class ImageFile(
             }
             bytesArray = arr.toHexString(hexFormat).split(" ")
 
+
+            if (image?.width!! < image?.height!!) {
+                dst.top = _dpToPx(CodeEditor.FILES_LIST_HEIGHT_DP).toInt()
+                dst.bottom = windowHeight
+
+                val ratio = dst.height().toFloat() / image?.height!!
+                val imageWidth = (image?.width!! * ratio).toInt()
+
+                dst.left = windowWidth / 2 - imageWidth / 2
+                dst.right = dst.left + imageWidth
+            } else {
+                dst.left = 0
+                dst.right = windowWidth
+
+                val ratio = dst.width().toFloat() / image?.width!!
+                val imageHeight = (image?.height!! * ratio).toInt()
+
+                dst.top = windowHeight / 2 - imageHeight / 2
+                dst.bottom = dst.top + imageHeight
+            }
             onCreatedCallback(this)
         }.start()
     }
@@ -89,28 +113,6 @@ class ImageFile(
 
     override fun print(canvas: Canvas) {
         if (!isBinary) {
-            val dst = Rect()
-
-            if (image?.width!! < image?.height!!) {
-                dst.top = _dpToPx(CodeEditor.FILES_LIST_HEIGHT_DP).toInt()
-                dst.bottom = windowHeight
-
-                val ratio = dst.height().toFloat() / image?.height!!
-                val imageWidth = (image?.width!! * ratio).toInt()
-
-                dst.left = windowWidth / 2 - imageWidth / 2
-                dst.right = dst.left + imageWidth
-            } else {
-                dst.left = 0
-                dst.right = windowWidth
-
-                val ratio = dst.width().toFloat() / image?.width!!
-                val imageHeight = (image?.height!! * ratio).toInt()
-
-                dst.top = windowHeight / 2 - imageHeight / 2
-                dst.bottom = dst.top + imageHeight
-            }
-
             canvas.drawBitmap(image!!, null, dst, paint)
 
             paint.color = Color.BLACK
@@ -153,6 +155,9 @@ class ImageFile(
     }
 
     private fun _getVectorBitmap(context: Context, drawableId: Int): Bitmap? {
+        val mapBmp = vectorBitmapMap[drawableId]
+        if (mapBmp != null) return mapBmp
+
         var bitmap: Bitmap? = null
         when (val drawable = ContextCompat.getDrawable(context, drawableId)) {
             is BitmapDrawable -> {
@@ -168,6 +173,9 @@ class ImageFile(
                 drawable.draw(canvas)
             }
         }
+
+        vectorBitmapMap[drawableId] = bitmap
+
         return bitmap
     }
 
