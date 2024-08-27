@@ -11,21 +11,16 @@ import android.graphics.BitmapFactory
 import android.graphics.drawable.Animatable
 import android.graphics.drawable.AnimatedVectorDrawable
 import android.os.Bundle
-import android.util.Log
 import android.util.TypedValue
 import android.view.View
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.ProgressBar
-import android.widget.RelativeLayout
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
-import android.widget.ViewFlipper
-import androidx.core.view.allViews
 import androidx.core.view.setPadding
-import com.nakaharadev.nextide.ui.CodeEditor
+import com.nakaharadev.nextide.ui.NDevCodeEditor
 import com.nakaharadev.nextide.ui.FileManagerView
 import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
@@ -140,11 +135,11 @@ class EditorActivity : Activity() {
             return@setOnCreateCallback newFile
         }
         fileManager.setOnOpenFileCallback {
-            findViewById<CodeEditor>(R.id.editor).addFile(it)
+            findViewById<NDevCodeEditor>(R.id.editor).addFile(it)
             _toggleMenuState(findViewById(R.id.toggle_menu_state))
         }
         fileManager.setOnDeleteCallback {
-            findViewById<CodeEditor>(R.id.editor).removeFile(it)
+            findViewById<NDevCodeEditor>(R.id.editor).removeFile(it)
         }
     }
 

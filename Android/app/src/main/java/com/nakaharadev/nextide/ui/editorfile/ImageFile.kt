@@ -13,7 +13,7 @@ import android.graphics.drawable.VectorDrawable
 import android.util.TypedValue
 import androidx.core.content.ContextCompat
 import com.nakaharadev.nextide.R
-import com.nakaharadev.nextide.ui.CodeEditor
+import com.nakaharadev.nextide.ui.NDevCodeEditor
 import java.io.ByteArrayOutputStream
 import java.io.File
 
@@ -39,7 +39,7 @@ class ImageFile(
 
     init {
         Thread {
-            toggleModeDst.top = _dpToPx(CodeEditor.FILES_LIST_HEIGHT_DP + 20f).toInt()
+            toggleModeDst.top = _dpToPx(NDevCodeEditor.FILES_LIST_HEIGHT_DP + 20f).toInt()
             toggleModeDst.bottom = toggleModeDst.top + _dpToPx(30f).toInt()
             toggleModeDst.right = windowWidth - _dpToPx(20f).toInt()
             toggleModeDst.left = toggleModeDst.right - toggleModeDst.height()
@@ -66,7 +66,7 @@ class ImageFile(
 
 
             if (image?.width!! < image?.height!!) {
-                dst.top = _dpToPx(CodeEditor.FILES_LIST_HEIGHT_DP).toInt()
+                dst.top = _dpToPx(NDevCodeEditor.FILES_LIST_HEIGHT_DP).toInt()
                 dst.bottom = windowHeight
 
                 val ratio = dst.height().toFloat() / image?.height!!
@@ -122,7 +122,7 @@ class ImageFile(
             canvas.drawBitmap(_getVectorBitmap(context, R.drawable.binary_icon)!!, null, toggleModeDst, paint)
         } else {
             paint.color = context.resources.getColor(R.color.window_bg)
-            canvas.drawRect(0f, _dpToPx(CodeEditor.FILES_LIST_HEIGHT_DP), windowWidth.toFloat(), windowHeight.toFloat(), paint)
+            canvas.drawRect(0f, _dpToPx(NDevCodeEditor.FILES_LIST_HEIGHT_DP), windowWidth.toFloat(), windowHeight.toFloat(), paint)
 
             paint.color = Color.BLACK
             canvas.drawRoundRect(-20f, toggleModeDst.bottom.toFloat() + 15f, toggleModeDst.left.toFloat() - 60f, windowHeight.toFloat(), 20f, 20f, paint)

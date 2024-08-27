@@ -7,7 +7,7 @@ import android.graphics.Typeface
 import android.util.TypedValue
 import com.nakaharadev.nextide.R
 import com.nakaharadev.nextide.langs.highlight.HighLight
-import com.nakaharadev.nextide.ui.CodeEditor
+import com.nakaharadev.nextide.ui.NDevCodeEditor
 import java.io.DataInputStream
 import java.io.File
 import java.io.FileInputStream
@@ -39,7 +39,7 @@ class CodeFile(
         Thread {
             super.name = file.name
 
-            filesListHeight = _dpToPx(CodeEditor.FILES_LIST_HEIGHT_DP)
+            filesListHeight = _dpToPx(NDevCodeEditor.FILES_LIST_HEIGHT_DP)
 
             var data = ""
             try {
@@ -115,7 +115,7 @@ class CodeFile(
             canvas.drawText(
                 token.lexeme,
                 token.startXPos * paint.measureText(" ") + linesBarWidth + textOffsetX,
-                token.yPos * (textSize + textPadding) + _dpToPx(CodeEditor.FILES_LIST_HEIGHT_DP),
+                token.yPos * (textSize + textPadding) + _dpToPx(NDevCodeEditor.FILES_LIST_HEIGHT_DP),
                 paint
             )
         }
@@ -125,7 +125,7 @@ class CodeFile(
             0f,
             filesListHeight,
             linesBarWidth,
-            (textSize + textPadding) * (lines.size + 1) + _dpToPx(CodeEditor.FILES_LIST_HEIGHT_DP),
+            (textSize + textPadding) * (lines.size + 1) + _dpToPx(NDevCodeEditor.FILES_LIST_HEIGHT_DP),
             paint
         )
 
@@ -134,7 +134,7 @@ class CodeFile(
             linesBarWidth,
             filesListHeight,
             linesBarWidth,
-            (textSize + textPadding) * (lines.size + 1) + _dpToPx(CodeEditor.FILES_LIST_HEIGHT_DP),
+            (textSize + textPadding) * (lines.size + 1) + _dpToPx(NDevCodeEditor.FILES_LIST_HEIGHT_DP),
             paint
         )
 
@@ -143,7 +143,7 @@ class CodeFile(
             canvas.drawText(
                 (i + 1).toString(),
                 5f,
-                (i + 1) * (textSize + textPadding) + _dpToPx(CodeEditor.FILES_LIST_HEIGHT_DP),
+                (i + 1) * (textSize + textPadding) + _dpToPx(NDevCodeEditor.FILES_LIST_HEIGHT_DP),
                 paint
             )
         }

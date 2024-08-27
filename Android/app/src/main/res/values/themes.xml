@@ -10,4 +10,9 @@
         <item name="android:windowSplashScreenBackground">@color/window_bg</item>
         <item name="android:windowSplashScreenAnimatedIcon">@drawable/app_logo</item>
     </style>
+
+    <style name="AutowideText">
+        <item name="fontFamily">@font/audiowide</item>
+        <item name="android:fontFamily">@font/audiowide</item>
+    </style>
 </resources>

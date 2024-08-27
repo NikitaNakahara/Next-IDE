@@ -25,7 +25,7 @@ import java.io.File
 import kotlin.math.max
 
 
-class CodeEditor @JvmOverloads constructor(
+class NDevCodeEditor @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
@@ -94,8 +94,6 @@ class CodeEditor @JvmOverloads constructor(
                     headerRect.top = _dpToPx(FILES_LIST_HEIGHT_DP) - 5f
                     headerRect.right = barWidth + 25f + headerTextOffset + paint.measureText(files[i].name)
                     headerRect.bottom = _dpToPx(FILES_LIST_HEIGHT_DP)
-
-                    paint.color = context.getColor(R.color.main_ui_1)
 
                     canvas.drawRect(headerRect, paint)
 
@@ -174,13 +172,7 @@ class CodeEditor @JvmOverloads constructor(
         if (currentOpenedFileIndex == -1) return
 
         if (_clickPosIsHeader(yPos)) {
-            val index = _getFileIndex(xPos)
-            if (index != -1) {
-                currentOpenedFileIndex = index
-            }
-
-            textOffsetX = 0f
-            textOffsetY = 0f
+            _changeOpenedFile(_getFileIndex(xPos))
         } else {
             if (files[currentOpenedFileIndex] is CodeFile) {
                 requestFocus()
@@ -196,6 +188,15 @@ class CodeEditor @JvmOverloads constructor(
         }
 
         invalidate()
+    }
+
+    fun _changeOpenedFile(index: Int) {
+        if (index != -1) {
+            currentOpenedFileIndex = index
+        }
+
+        textOffsetX = 0f
+        textOffsetY = 0f
     }
 
     fun addFile(file: File) {
