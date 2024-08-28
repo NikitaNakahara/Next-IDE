@@ -287,7 +287,7 @@ class NDevCodeEditor @JvmOverloads constructor(
 
         if (shiftedTextPos < 0) return -globalTextPos + 30f
 
-        if (shiftedTextPos + textSize + 60f > width) return headerTextOffset - textSize
+        if (shiftedTextPos + textSize + 60f > width) return headerTextOffset - (shiftedTextPos + textSize - width + 60f)
 
         return headerTextOffset
     }
