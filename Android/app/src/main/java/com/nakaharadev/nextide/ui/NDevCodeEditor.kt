@@ -131,7 +131,7 @@ class NDevCodeEditor @JvmOverloads constructor(
 
             MotionEvent.ACTION_UP -> {
                 if (downX == event.x && downY == event.y) {
-                    click(event.x, event.y)
+                    _click(event.x, event.y)
                 }
 
                 return true
@@ -166,37 +166,6 @@ class NDevCodeEditor @JvmOverloads constructor(
         }
 
         return false
-    }
-
-    fun click(xPos: Float, yPos: Float) {
-        if (currentOpenedFileIndex == -1) return
-
-        if (_clickPosIsHeader(yPos)) {
-            _changeOpenedFile(_getFileIndex(xPos))
-        } else {
-            if (files[currentOpenedFileIndex] is CodeFile) {
-                requestFocus()
-
-                val inputMethodManager =
-                    context.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
-                inputMethodManager.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT)
-
-                (files[currentOpenedFileIndex] as CodeFile).click(xPos, yPos)
-            } else {
-                (files[currentOpenedFileIndex] as ImageFile).toggleBinaryDrawMode(xPos, yPos)
-            }
-        }
-
-        invalidate()
-    }
-
-    fun _changeOpenedFile(index: Int) {
-        if (index != -1) {
-            currentOpenedFileIndex = index
-        }
-
-        textOffsetX = 0f
-        textOffsetY = 0f
     }
 
     fun addFile(file: File) {
@@ -257,6 +226,83 @@ class NDevCodeEditor @JvmOverloads constructor(
         files.remove(delFile)
 
         invalidate()
+    }
+
+    private fun _click(xPos: Float, yPos: Float) {
+        if (currentOpenedFileIndex == -1) return
+
+        if (_clickPosIsHeader(yPos)) {
+            _changeOpenedFile(_getFileIndex(xPos))
+        } else {
+            if (files[currentOpenedFileIndex] is CodeFile) {
+                requestFocus()
+
+                val inputMethodManager =
+                    context.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+                inputMethodManager.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT)
+
+                (files[currentOpenedFileIndex] as CodeFile).click(xPos, yPos)
+            } else {
+                (files[currentOpenedFileIndex] as ImageFile).toggleBinaryDrawMode(xPos, yPos)
+            }
+        }
+
+        invalidate()
+    }
+
+    private fun _changeOpenedFile(index: Int) {
+        if (index != -1) {
+            currentOpenedFileIndex = index
+        }
+
+        textOffsetX = 0f
+        textOffsetY = 0f
+
+        val headerOffsetAnimator = ValueAnimator.ofFloat(headerTextOffset, _calcHeaderTextOffsetAfterChanging(index))
+        headerOffsetAnimator.duration = 150
+        headerOffsetAnimator.addUpdateListener {
+            headerTextOffset = it.animatedValue as Float
+
+            postInvalidate()
+        }
+
+        headerOffsetAnimator.start()
+
+
+    }
+
+    private fun _calcHeaderTextOffsetAfterChanging(newIndex: Int): Float {
+        if (newIndex == -1) return headerTextOffset
+        if (newIndex == 0) return 0f
+        if (newIndex == files.size - 1) return (width - fullHeaderLength) - 60f
+
+        val globalTextPos = _calcHeaderTextPos(newIndex)
+        val shiftedTextPos = globalTextPos + headerTextOffset
+
+        paint.setTypeface(Typeface.MONOSPACE)
+        paint.textSize = headerTextSize
+        val textSize = paint.measureText(files[newIndex].name)
+
+        if (shiftedTextPos > 0 && shiftedTextPos + textSize < width) return headerTextOffset
+
+        if (shiftedTextPos < 0) return -globalTextPos + 30f
+
+        if (shiftedTextPos + textSize + 60f > width) return headerTextOffset - textSize
+
+        return headerTextOffset
+    }
+
+    private fun _calcHeaderTextPos(index: Int): Float {
+        var result = 30f
+
+        paint.setTypeface(Typeface.MONOSPACE)
+        paint.textSize = headerTextSize
+
+        for (i in 0 until index) {
+            result += paint.measureText(files[i].name) + 25f
+        }
+
+        return result
     }
 
     private fun _showLoadBar() {
