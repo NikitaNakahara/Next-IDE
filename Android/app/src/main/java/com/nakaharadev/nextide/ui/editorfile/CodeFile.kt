@@ -24,7 +24,7 @@ class CodeFile(
     private val paint = Paint()
 
     private val textSize = 40f
-    private val textPadding = 3f
+    private val textPadding = 7f
     private val linesBarWidth = 70f
 
     private var textOffsetX = 0f

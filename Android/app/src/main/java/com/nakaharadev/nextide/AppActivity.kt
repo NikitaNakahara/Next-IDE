@@ -141,32 +141,72 @@ class AppActivity : Activity() {
 
             val project = ProjectConstructor.create(projectDir)
 
-            val config = """
-            {
-                "name": "${ProjectConstructor.name}",
-                "targetOs": "${ProjectConstructor.targetOS}",
-                "version": "${project.compilerVersion}",
-                "libs": [
+            if (ProjectConstructor.type == "empty") {
+                var projectFileDir = File("${projectDir.path}/build")
+                projectFileDir.mkdir()
+                projectFileDir = File("${projectDir.path}/src")
+                projectFileDir.mkdir()
+                projectFileDir = File("${projectDir.path}/res")
+                projectFileDir.mkdir()
+
+                val configFile = File("${projectDir.path}/config.json")
+                configFile.createNewFile()
+                val dos = DataOutputStream(FileOutputStream(configFile))
+
+                val config = """
                     {
-                        "name": "io",
-                        "path": "_COMPILER_DIR_/libs/io.next"
+                        "name": "${ProjectConstructor.name}",
+                        "targetOs": "${ProjectConstructor.targetOS}",
+                        "version": "${project.compilerVersion}",
+                        "libs": []
                     }
-                ]
+                    """.trimIndent()
+                dos.writeUTF(config)
+                dos.close()
+            } else {
+                var projectFileDir = File("${projectDir.path}/build")
+                projectFileDir.mkdir()
+                projectFileDir = File("${projectDir.path}/src")
+                projectFileDir.mkdir()
+                projectFileDir = File("${projectDir.path}/res")
+                projectFileDir.mkdir()
+
+                val configFile = File("${projectDir.path}/config.json")
+                configFile.createNewFile()
+                var dos = DataOutputStream(FileOutputStream(configFile))
+
+                val config = """
+                    {
+                        "name": "${ProjectConstructor.name}",
+                        "targetOs": "${ProjectConstructor.targetOS}",
+                        "version": "${project.compilerVersion}",
+                        "libs": [
+                            {
+                                "name": "io",
+                                "path": "${"$"}COMPILER_DIR$/stdlib/io.next"
+                            }
+                        ]
+                    }
+                    """.trimIndent()
+                dos.writeUTF(config)
+                dos.close()
+
+                val helloWorldFile = File("${projectDir.path}/src/main.next")
+                helloWorldFile.createNewFile()
+                dos = DataOutputStream(FileOutputStream(helloWorldFile))
+
+                val helloWorld = """
+                    import io;
+                    
+                    func main(args: array<string>): int {
+                        io.println("Hello, world");
+                        
+                        return 0;
+                    }
+                    """.trimIndent()
+                dos.writeUTF(helloWorld)
+                dos.close()
             }
-            """.trimIndent()
-
-            var projectFileDir = File("${projectDir.path}/build")
-            projectFileDir.mkdir()
-            projectFileDir = File("${projectDir.path}/src")
-            projectFileDir.mkdir()
-            projectFileDir = File("${projectDir.path}/res")
-            projectFileDir.mkdir()
-
-            val configFile = File("${projectDir.path}/config.json")
-            configFile.createNewFile()
-            val dos = DataOutputStream(FileOutputStream(configFile))
-            dos.writeUTF(config)
-            dos.close()
 
             runOnUiThread {
                 finishCallback(project)
