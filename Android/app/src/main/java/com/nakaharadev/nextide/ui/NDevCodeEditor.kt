@@ -242,13 +242,19 @@ class NDevCodeEditor @JvmOverloads constructor(
                 delFile = f
             }
         }
-        files.remove(delFile)
 
         if (currentOpenedFileIndex > -1) {
             if (files[currentOpenedFileIndex] == file) {
                 currentOpenedFileIndex = if (files.size >= 1) 0 else -1
+            } else {
+                if (currentOpenedFileIndex > 0) {
+                    currentOpenedFileIndex--
+                }
             }
         }
+
+
+        files.remove(delFile)
 
         invalidate()
     }

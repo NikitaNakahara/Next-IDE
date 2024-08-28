@@ -38,7 +38,21 @@ abstract class AbstractFile {
         }
     }
 
+    override fun equals(other: Any?): Boolean {
+        if (other == null) return false
+        if (other !is AbstractFile) return false
+
+        return "${file.path}:$name" == "${other.file.path}:${other.name}"
+    }
+
     abstract fun move(deltaX: Float, deltaY: Float)
     abstract fun save()
     abstract fun print(canvas: Canvas)
+
+    override fun hashCode(): Int {
+        var result = name.hashCode()
+        result = 31 * result + file.hashCode()
+
+        return result
+    }
 }
